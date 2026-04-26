@@ -2,6 +2,12 @@ const express = require('express');
 
 const app = express();
 
+const adminAuth = require('../MiddleWare/auth');
+
+app.get("/admin", adminAuth,(req, res) => {
+    res.send("Welcome Admin");
+});
+
 app.get('/user/:userId/:name/:password', (req, res) => {
     console.log(req.params);
     res.send({firstname: "Gajanan",lastname:"Nilajkar"});
