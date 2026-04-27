@@ -82,17 +82,27 @@ app.delete("/user", async (req,res) => {
 });
 
 app.patch("/user", async (req,res) => {
-    const userId = req.body._id;
-    const updateData = req.body;
+    // const userId = req.body._id;
+    // const updateData = req.body;
+
+    const { _id, ...updateData } = req.body;
+    const userId = _id;
 
     try {
-        const user = await User.findByIdAndUpdate({ _id: userId}, updateData);
+        const AllowedUpdates = ["age","gender","password","lastName"];
 
-        if (user.length === 0){
-            res.status(404).send("User not found");
-        } else {
-            res.send("User updated successfully");
+        const updates = Object.keys(updateData);
+        const isValid = updates.every((field) => AllowedUpdates.includes(field));
+        if (!isValid){
+            return res.status(400).send("Cannot update the field");
         }
+
+        const user = await User.findByIdAndUpdate({ _id: userId}, updateData,{
+            runValidators: true,
+        });
+
+        res.send("User updated successfully");
+
     } catch (err) {
         console.error("Error updating user:", err);
         res.status(500).send("Internal Server Error");
