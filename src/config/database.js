@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
+const {MONGO_URI} = require("../dbCredentials");
 
 const mongoDB = async () =>{
-    await mongoose.connect("mongodb+srv://Gajanan06:Gaju%40006@gajanandb.azwcvzh.mongodb.net/devTinder?retryWrites=true&w=majority");
+    await mongoose.connect(MONGO_URI);
 };
 
 module.exports = mongoDB;
