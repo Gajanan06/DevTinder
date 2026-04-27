@@ -64,6 +64,23 @@ app.get("/id", async (req,res) => {
     }
 });
 
+app.delete("/user", async (req,res) => {
+    const userId = req.body._id;
+
+    try {
+        const user = await User.findByIdAndDelete({_id: userId});
+
+        if (user.length === 0){
+            res.status(404).send("User not found");
+        } else {
+            res.send("User deleted successfully");
+        }
+    } catch (err) {
+        console.error("Error deleting user:", err);
+        res.status(500).send("Internal Server Error");
+    }
+});
+
 mongoDB().then(() => {
     console.log("Connected to MongoDB");
     app.listen(3000, () => {
