@@ -3,13 +3,11 @@ const mongoDB = require('./config/database');
 const app = express();
 const User = require('./models/user');
 
+app.use(express.json());
+
 app.post("/signup", async (req, res) => {
     try {
-        const user = ({ firstName: "Gajanan",
-             lastName: "Nilajkar", 
-             emailID: "gajanannilajkar06@gmail.com",
-             password: "gajanan123",
-        });
+        const user = (req.body);
 
         const newUser = new User(user);
 
