@@ -2,22 +2,65 @@ const express = require('express');
 const mongoDB = require('./config/database');
 const app = express();
 const User = require('./models/user');
+const bcrypt = require('bcrypt');
+
+const {ValidateSignupData} = require('./utlis/validation');
 
 app.use(express.json());
 
 app.post("/signup", async (req, res) => {
     try {
+        // console.log("BODY:", req.body);
+
+        //validate the data
+        ValidateSignupData(req.body);
+    
+       // Encrypt the password
+        const { firstName, lastName, emailID, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log("Hashed Password:", hashedPassword);
+
+
+    
         const user = (req.body);
 
-        const newUser = new User(user);
+        const newUser = new User({
+            firstName,
+            lastName,
+            emailID,
+            password: hashedPassword
+        });
 
         await newUser.save();
         res.send("User created successfully");
     } catch (err) {
-        console.error("Error creating user:", err);
-        res.status(500).send("Internal Server Error");
+        // console.error("Error creating user:", err);
+        res.status(400).send(err.message);
     }
 });
+
+app.post("/login", async (req,res) => {
+    const { emailID, password } = req.body;
+
+    try {
+        const user = await User.findOne({ emailID});
+        if (!user){
+            throw new Error("Invalid Email ID");
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch){
+            throw new Error("Invalid Password");
+        }else {
+            res.send("Login successful");
+        }
+    }
+    catch (err) {
+        res.status(400).send(err.message);
+    }
+});
+
 
 app.get("/user", async (req,res) => {
     const UserEmailId = req.body.emailID;
@@ -29,8 +72,8 @@ app.get("/user", async (req,res) => {
             res.send(user);
         }
     } catch (err) {
-        console.error("Error fetching user:", err);
-        res.status(500).send("Internal Server Error");
+        // console.error("Error fetching user:", err);
+        res.status(400).send("Internal Server Error");
     }   
 });
 
@@ -44,8 +87,8 @@ app.get("/feed", async (req,res) => {
             res.send(user);
         }
     } catch (err) {
-        console.error("Error fetching user:", err);
-        res.status(500).send("Internal Server Error");
+        // console.error("Error fetching user:", err);
+        res.status(400).send("Internal Server Error");
     }
 });
 
@@ -59,8 +102,8 @@ app.get("/id", async (req,res) => {
             res.send(user);
         }
     } catch (err) {
-        console.error("Error fetching user:", err);
-        res.status(500).send("Internal Server Error");
+        // console.error("Error fetching user:", err);
+        res.status(400).send("Internal Server Error");
     }
 });
 
@@ -76,8 +119,8 @@ app.delete("/user", async (req,res) => {
             res.send("User deleted successfully");
         }
     } catch (err) {
-        console.error("Error deleting user:", err);
-        res.status(500).send("Internal Server Error");
+        // console.error("Error deleting user:", err);
+        res.status(400).send("Internal Server Error");
     }
 });
 
@@ -104,8 +147,8 @@ app.patch("/user", async (req,res) => {
         res.send("User updated successfully");
 
     } catch (err) {
-        console.error("Error updating user:", err);
-        res.status(500).send("Internal Server Error");
+        // console.error("Error updating user:", err);
+        res.status(400).send("Internal Server Error");
     }
 });
 
