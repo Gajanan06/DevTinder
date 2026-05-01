@@ -3,10 +3,14 @@ const mongoDB = require('./config/database');
 const app = express();
 const User = require('./models/user');
 const bcrypt = require('bcrypt');
+const cookieeParser = require('cookie-parser');
+const jwt = require("jsonwebtoken");
+const { authMiddleware } = require('./MiddleWare/auth');
 
 const {ValidateSignupData} = require('./utlis/validation');
 
 app.use(express.json());
+app.use(cookieeParser());
 
 app.post("/signup", async (req, res) => {
     try {
@@ -52,13 +56,26 @@ app.post("/login", async (req,res) => {
 
         if (!isMatch){
             throw new Error("Invalid Password");
-        }else {
-            res.send("Login successful");
+        } else{
+
+        const token = jwt.sign(
+         { _id: user._id },
+            "DevTinder@12345",
+           { expiresIn: "1h" }
+           );
+
+        res.cookie("Token", token);
+        res.send("Login successful");
         }
+        
     }
     catch (err) {
         res.status(400).send(err.message);
     }
+});
+
+app.get("/profile", authMiddleware, (req, res) => {
+  res.send("User profile: " + req.user._id);
 });
 
 
