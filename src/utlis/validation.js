@@ -16,4 +16,16 @@ const ValidateSignupData = (data) => {
     }
 };
 
-module.exports = { ValidateSignupData };
+const ValidateEditProfileData = (req) => {
+    const allowedFields = ["age","gender", "profile"];
+    
+    const updates = Object.keys(req.body).every((update) => allowedFields.includes(update));
+    if (!updates){
+        throw new Error("Invalid updates");
+    }
+
+    return updates;
+};
+   
+
+module.exports = { ValidateSignupData , ValidateEditProfileData};
