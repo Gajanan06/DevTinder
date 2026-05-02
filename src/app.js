@@ -2,81 +2,24 @@ const express = require('express');
 const mongoDB = require('./config/database');
 const app = express();
 const User = require('./models/user');
-const bcrypt = require('bcrypt');
 const cookieeParser = require('cookie-parser');
 const jwt = require("jsonwebtoken");
 const { authMiddleware } = require('./MiddleWare/auth');
 
-const {ValidateSignupData} = require('./utlis/validation');
-
 app.use(express.json());
 app.use(cookieeParser());
 
-app.post("/signup", async (req, res) => {
-    try {
-        // console.log("BODY:", req.body);
+const authRoutes = require("./routes/authh");
+const profileRoutes = require("./routes/profile");
+const requestRoutes = require("./routes/request");
 
-        //validate the data
-        ValidateSignupData(req.body);
-    
-       // Encrypt the password
-        const { firstName, lastName, emailID, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
-        console.log("Hashed Password:", hashedPassword);
+app.use("/", authRoutes);
+app.use("/", profileRoutes);
+app.use("/", requestRoutes);
 
 
-    
-        const user = (req.body);
 
-        const newUser = new User({
-            firstName,
-            lastName,
-            emailID,
-            password: hashedPassword
-        });
 
-        await newUser.save();
-        res.send("User created successfully");
-    } catch (err) {
-        // console.error("Error creating user:", err);
-        res.status(400).send(err.message);
-    }
-});
-
-app.post("/login", async (req,res) => {
-    const { emailID, password } = req.body;
-
-    try {
-        const user = await User.findOne({ emailID});
-        if (!user){
-            throw new Error("Invalid Email ID");
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch){
-            throw new Error("Invalid Password");
-        } else{
-
-        const token = jwt.sign(
-         { _id: user._id },
-            "DevTinder@12345",
-           { expiresIn: "1h" }
-           );
-
-        res.cookie("Token", token);
-        res.send("Login successful");
-        }
-        
-    }
-    catch (err) {
-        res.status(400).send(err.message);
-    }
-});
-
-app.get("/profile", authMiddleware, (req, res) => {
-  res.send("User profile: " + req.user._id);
-});
 
 
 app.get("/user", async (req,res) => {
