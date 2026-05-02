@@ -12,105 +12,14 @@ app.use(cookieeParser());
 const authRoutes = require("./routes/authh");
 const profileRoutes = require("./routes/profile");
 const requestRoutes = require("./routes/request");
+const userRoutes = require("./routes/users");
 
 app.use("/", authRoutes);
 app.use("/", profileRoutes);
 app.use("/", requestRoutes);
+app.use("/", userRoutes);
 
 
-
-
-
-
-app.get("/user", async (req,res) => {
-    const UserEmailId = req.body.emailID;
-    try {
-        const user = await User.findOne({emailID: UserEmailId});
-        if (user.length === 0){
-            res.status(404).send("User not found");
-        } else {
-            res.send(user);
-        }
-    } catch (err) {
-        // console.error("Error fetching user:", err);
-        res.status(400).send("Internal Server Error");
-    }   
-});
-
-app.get("/feed", async (req,res) => {
-     
-    try {
-        const user = await User.find({});
-        if (user.length === 0){
-            res.status(404).send("User not found");
-        } else {
-            res.send(user);
-        }
-    } catch (err) {
-        // console.error("Error fetching user:", err);
-        res.status(400).send("Internal Server Error");
-    }
-});
-
-app.get("/id", async (req,res) => {
-
-    try {
-        const user = await User.findById({_id: req.body._id});
-        if (user.length === 0){
-            res.status(404).send("User not found");
-        } else {
-            res.send(user);
-        }
-    } catch (err) {
-        // console.error("Error fetching user:", err);
-        res.status(400).send("Internal Server Error");
-    }
-});
-
-app.delete("/user", async (req,res) => {
-    const userId = req.body._id;
-
-    try {
-        const user = await User.findByIdAndDelete({_id: userId});
-
-        if (user.length === 0){
-            res.status(404).send("User not found");
-        } else {
-            res.send("User deleted successfully");
-        }
-    } catch (err) {
-        // console.error("Error deleting user:", err);
-        res.status(400).send("Internal Server Error");
-    }
-});
-
-app.patch("/user", async (req,res) => {
-    // const userId = req.body._id;
-    // const updateData = req.body;
-
-    const { _id, ...updateData } = req.body;
-    const userId = _id;
-
-    try {
-        const AllowedUpdates = ["age","gender","password","lastName"];
-
-        const updates = Object.keys(updateData);
-        const isValid = updates.every((field) => AllowedUpdates.includes(field));
-        if (!isValid){
-            return res.status(400).send("Cannot update the field");
-        }
-
-        const user = await User.findByIdAndUpdate({ _id: userId}, updateData,{
-            runValidators: true,
-        });
-
-        res.send("User updated successfully");
-
-    } catch (err) {
-        // console.error("Error updating user:", err);
-        res.status(400).send("Internal Server Error");
-    }
-});
 
 mongoDB().then(() => {
     console.log("Connected to MongoDB");

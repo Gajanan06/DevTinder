@@ -50,4 +50,39 @@ requestRoutes.post("/request/send/:status/:toUserId", authMiddleware, async (req
   }
 });
 
+requestRoutes.post("/request/review/:status/:requestId", authMiddleware, async (req, res) => {
+  try {
+    const status = req.params.status;
+    const requestId = req.params.requestId;
+    const loggedInUserId = req.user._id;
+
+    // 1. Validate status
+    const allowedStatus = ["accepted", "rejected"];
+    if (!allowedStatus.includes(status)) {
+      return res.status(400).send("Invalid status");
+    }
+
+    // 2. Find request
+    const request = await ConnectionRequest.findOne({
+      _id: requestId,
+      toUserId: loggedInUserId,
+      status: "interested"
+    });
+
+    // 3. Check if request exists
+    if (!request) {
+      return res.status(404).send("Request not found");
+    }
+
+    // 4. Update status
+    request.status = status;
+    await request.save();
+
+    res.send("Request " + status);
+
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 module.exports = requestRoutes;
