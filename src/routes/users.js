@@ -45,4 +45,39 @@ userRoutes.get("/user/connections", authMiddleware, async (req, res) => {
   }
 });
 
+userRoutes.get("/feed", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // 1. Find all requests involving me
+    const requests = await ConnectionRequest.find({
+      $or: [
+        { fromUserId: userId },
+        { toUserId: userId }
+      ]
+    });
+
+    // 2. Collect users to hide
+    const hiddenUsers = new Set();
+
+    requests.forEach(req => {
+      hiddenUsers.add(req.fromUserId.toString());
+      hiddenUsers.add(req.toUserId.toString());
+    });
+
+    // 3. Remove myself
+    hiddenUsers.add(userId.toString());
+
+    // 4. Fetch remaining users
+    const users = await User.find({
+      _id: { $nin: Array.from(hiddenUsers) }
+    }).select("firstName lastName photoUrl age gender");
+
+    res.send(users);
+
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
 module.exports = userRoutes;
